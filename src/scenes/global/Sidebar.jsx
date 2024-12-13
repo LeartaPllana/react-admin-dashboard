@@ -59,9 +59,10 @@ const Sidebar = () => {
         "& .pro-menu-item.active": {
           color: "#6870fa !important",
         },
+        height: "125vh", // Set sidebar height to 125vh
       }}
     >
-      <ProSidebar collapsed={isCollapsed}>
+      <ProSidebar collapsed={isCollapsed} style={{ height: "125vh" }}>
         <Menu iconShape="square">
           {/* LOGO AND MENU ICON */}
           <MenuItem
