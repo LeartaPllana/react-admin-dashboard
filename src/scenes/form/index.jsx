@@ -1,14 +1,48 @@
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button, TextField, Table, TableHead, TableRow, TableCell, TableBody, IconButton } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../components/Header";
+import { useState, useEffect } from "react";
+import { Edit, Delete } from "@mui/icons-material";
 
 const Form = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
 
+  const [userData, setUserData] = useState([]); 
+  const [editIndex, setEditIndex] = useState(null); 
+
+  // Load user data from localStorage when the component mounts
+  useEffect(() => {
+    const storedUserData = JSON.parse(localStorage.getItem("userData")) || [];
+    setUserData(storedUserData);
+  }, []);
+
+  // Save user data to localStorage whenever it changes
+  useEffect(() => {
+    if (userData.length > 0) {
+      localStorage.setItem("userData", JSON.stringify(userData));
+    }
+  }, [userData]);
+
   const handleFormSubmit = (values) => {
-    console.log(values);
+    if (editIndex !== null) {
+      const updatedUserData = [...userData];
+      updatedUserData[editIndex] = values;
+      setUserData(updatedUserData);
+    } else {
+      setUserData([...userData, values]);
+    }
+    setEditIndex(null);
+  };
+
+  const handleEdit = (index) => {
+    setEditIndex(index);
+  };
+
+  const handleDelete = (index) => {
+    const updatedUserData = userData.filter((_, i) => i !== index);
+    setUserData(updatedUserData);
   };
 
   return (
@@ -17,7 +51,7 @@ const Form = () => {
 
       <Formik
         onSubmit={handleFormSubmit}
-        initialValues={initialValues}
+        initialValues={editIndex !== null ? userData[editIndex] : initialValues}
         validationSchema={checkoutSchema}
       >
         {({
@@ -118,12 +152,49 @@ const Form = () => {
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Create New User
+                {editIndex !== null ? "Update User" : "Create New User"}
               </Button>
             </Box>
           </form>
         )}
       </Formik>
+
+      {/* Table to display user data */}
+      <Box mt="40px">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>First Name</TableCell>
+              <TableCell>Last Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Contact</TableCell>
+              <TableCell>Address 1</TableCell>
+              <TableCell>Address 2</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userData.map((user, index) => (
+              <TableRow key={index}>
+                <TableCell>{user.firstName}</TableCell>
+                <TableCell>{user.lastName}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.contact}</TableCell>
+                <TableCell>{user.address1}</TableCell>
+                <TableCell>{user.address2}</TableCell>
+                <TableCell>
+                  <IconButton onClick={() => handleEdit(index)} color="primary">
+                    <Edit />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(index)} color="secondary">
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Box>
     </Box>
   );
 };
@@ -142,6 +213,7 @@ const checkoutSchema = yup.object().shape({
   address1: yup.string().required("required"),
   address2: yup.string().required("required"),
 });
+
 const initialValues = {
   firstName: "",
   lastName: "",
